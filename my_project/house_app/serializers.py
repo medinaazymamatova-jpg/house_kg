@@ -2,60 +2,94 @@ from rest_framework import serializers
 from .models import UserProfile, Region, City, District, Property, PropertyImage, Review
 
 
-class UserProfileRegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
-
+class UserProfileNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ['username', 'first_name', 'last_name', 'email', 'phone_number', 'role', 'password']
-
-    def create(self, validated_data):
-        return UserProfile.objects.create_user(**validated_data)
+        fields = ['first_name']
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
+class UserProfileListSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'phone_number', 'role']
+        fields = ['id', 'first_name', 'role']
+
+class UserProfileDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = '__all__'
 
 
 class RegionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Region
-        fields = ['id', 'region_name']
+        fields = ['region_name']
 
 
 class CitySerializer(serializers.ModelSerializer):
     class Meta:
         model = City
-        fields = ['id', 'city_name', 'region']
+        fields = ['city_name']
 
 
 class DistrictSerializer(serializers.ModelSerializer):
     class Meta:
         model = District
-        fields = ['id', 'district_name', 'city']
+        fields = ['district_name']
 
 
 class PropertyImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyImage
-        fields = ['id', 'property_image']
+        fields = ['property_image']
 
 
-class PropertySerializer(serializers.ModelSerializer):
-    images = PropertyImageSerializer(many=True, read_only=True, source='propertyimage_set')
-
+class PropertyListSerializer(serializers.ModelSerializer):
+    property_images = PropertyImageSerializer(read_only=True, many=True)
     class Meta:
         model = Property
-        fields = [
-            'id', 'title', 'description', 'property_type', 'type_transaction',
-            'region', 'city', 'district', 'address', 'area', 'price',
-            'room', 'floor', 'total_floor', 'condition', 'document', 'seller', 'images'
-        ]
+        fields = ['id', 'title',  'property_type', 'area', 'room', 'price', 'region',
+                  'city', 'district', 'address', 'property_images']
 
+class PropertyDetailSerializer(serializers.ModelSerializer):
+    property_images = PropertyImageSerializer(read_only=True, many=True)
+    city = CitySerializer()
+    region = RegionSerializer()
+    district = DistrictSerializer()
+    seller = UserProfileNameSerializer()
+    avg_rating = serializers.SerializerMethodField()
+    count_review = serializers.SerializerMethodField()
+    class Meta:
+        model = Property
+        fields = ['title',  'property_type', 'area', 'room', 'price', 'region', 'type_transaction',
+                  'city', 'description', 'district', 'address', 'property_images', 'condition', 'document', 'room',
+                  'floor', 'total_floor','avg_rating', 'count_review', 'seller']
+
+    def get_avg_rating(self, obj):
+        return obj.get_avg_rating()
+
+    def get_count_review(self, obj):
+        return obj.get_count_review()
 
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        fields = ['id', 'seller', 'buyer', 'rating', 'comment', 'created_at']
+        fields = '__all__'
+
+class ReviewListSerializer(serializers.ModelSerializer):
+    property = PropertyListSerializer()
+    seller = UserProfileNameSerializer()
+    created_at = serializers.DateTimeField(format='%Y-%m-%d')
+
+    class Meta:
+        model = Review
+        fields = ['id',  'seller', 'property', 'rating', 'comment', 'created_at']
+
+
+
+class ReviewDetailSerializer(serializers.ModelSerializer):
+    property = PropertyListSerializer()
+    seller = UserProfileNameSerializer()
+    created_at = serializers.DateTimeField(format='%Y-%m-%d')
+    class Meta:
+        model = Review
+        fields = ['seller', 'property', 'rating', 'comment', 'created_at']

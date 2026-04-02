@@ -33,6 +33,10 @@ INSTALLED_APPS = [
     'house_app',
     'rest_framework',
     "phonenumber_field",
+    'django_filters',
+    'rest_framework_swagger',
+    'drf_yasg',
+
 ]
 
 MIDDLEWARE = [
@@ -131,3 +135,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 AUTH_USER_MODEL = 'house_app.UserProfile'
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+}

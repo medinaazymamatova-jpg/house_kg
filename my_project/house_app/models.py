@@ -15,13 +15,22 @@ class UserProfile(AbstractUser):
 class Region(models.Model):
     region_name = models.CharField(max_length=100, unique=True)
 
+    def __str__(self):
+        return self.region_name
+
 class City(models.Model):
     city_name = models.CharField(max_length=100)
     region = models.ForeignKey(Region, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return self.city_name
+
 class District(models.Model):
     district_name = models.CharField(max_length=64, unique=True)
     city = models.ForeignKey(City, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.district_name
 
 class Property(models.Model):
     title = models.CharField(max_length=64)
@@ -53,7 +62,7 @@ class Property(models.Model):
     ('4', '4'),
     ('свободная планировка', 'свободная планировка')
     )
-    room = models.PositiveSmallIntegerField(choices=Room_Choices)
+    room = models.CharField(choices=Room_Choices,max_length=56)
     floor = models.PositiveSmallIntegerField()
     total_floor = models.PositiveSmallIntegerField()
     Condition_Choices = (
@@ -67,14 +76,26 @@ class Property(models.Model):
     document = models.BooleanField()
     seller = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return self.title
+
+    def get_avg_rating(self):
+        ratings = self.property_review.all()
+        if ratings.exists():
+            return round(sum(i.rating for i in ratings) / ratings.count(), 2 )
+        return 0
+
+    def get_count_review(self):
+        self.property_review.count()
+
 
 class PropertyImage(models.Model):
-    property = models.ForeignKey(Property, on_delete=models.CASCADE)
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='property_images')
     property_image = models.ImageField(upload_to='property_photo/')
 
 class Review(models.Model):
     seller = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='review_seller')
-    buyer = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='review_buyer')
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='property_review')
     rating = models.PositiveSmallIntegerField(choices=[(i, str(i)) for i in range(1, 6)],null=True, blank=True)
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
