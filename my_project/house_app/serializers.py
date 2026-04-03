@@ -14,17 +14,6 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         user = UserProfile.objects.create_user(**validated_data)
         return user
 
-    def to_representation(self, instance):
-        refresh = RefreshToken.for_user(instance)
-        return {
-            'user': {
-                'username': instance.username,
-                'email': instance.email,
-            },
-            'access': str(refresh.access_token),
-            'refresh': str(refresh),
-        }
-
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()

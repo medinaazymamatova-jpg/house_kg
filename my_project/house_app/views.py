@@ -93,7 +93,7 @@ class PropertyListAPIView(generics.ListAPIView):
 class PropertyDetailAPIView(generics.RetrieveAPIView):
     queryset = Property.objects.all()
     serializer_class = PropertyDetailSerializer
-    # permission_classes = [SellerPermission, permissions.IsAuthenticated]
+    permission_classes = [SellerPermission, permissions.IsAuthenticated]
 
 
 class PropertyImageViewSet(viewsets.ModelViewSet):
